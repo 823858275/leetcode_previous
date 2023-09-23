@@ -1,18 +1,40 @@
-# Definition for a binary tree node.
-# !/usr/bin/env python
-# coding=utf-8
+# (k,n) 表示当前的结果
+# 在第x层分别计算碎与不碎的情况，两者相加
 class Solution:
-    def superEggDrop(self, k: int, n: int) -> int:
-        dp = [[0] * (k + 1) for _ in range(n + 1)]
-        for i in range(n + 1):
-            dp[i][1] = i
-        for i in range(1, n + 1):
-            for j in range(2, k + 1):
-                res = float('inf')
-                for m in range(1, i + 1):
-                    res = min(res, max(dp[m - 1][j - 1], dp[i - m][j]) + 1)
-                dp[i][j] = res
-        return dp[n][k]
+    def superEggDrop(self, K: int, N: int) -> int:
 
+        memo = dict()
 
-print(Solution().superEggDrop(3, 14))
+        def dp(K, N):
+            if K == 1: return N
+            if N == 0: return 0
+            if (K, N) in memo:
+                return memo[(K, N)]
+
+            # for 1 <= i <= N:
+            #     res = min(res,
+            #             max(
+            #                 dp(K - 1, i - 1),
+            #                 dp(K, N - i)
+            #                 ) + 1
+            #             )
+
+            res = float('INF')
+            # 用二分搜索代替线性搜索
+            lo, hi = 1, N
+            while lo <= hi:
+                mid = (lo + hi) // 2
+                broken = dp(K - 1, mid - 1)  # 碎
+                not_broken = dp(K, N - mid)  # 没碎
+                # res = min(max(碎，没碎) + 1)
+                if broken > not_broken:
+                    hi = mid - 1
+                    res = min(res, broken + 1)
+                else:
+                    lo = mid + 1
+                    res = min(res, not_broken + 1)
+
+            memo[(K, N)] = res
+            return res
+
+        return dp(K, N)
